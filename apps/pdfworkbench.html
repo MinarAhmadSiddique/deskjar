@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF Workbench — offline PDF toolkit for Windows</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --panel-2: #1d212b; --line: #2a2f3a;
+    --ink: #e8eaf0; --ink-dim: #9aa0ad; --ink-faint: #646b78;
+    --accent: #0F6E66; --accent-soft: #3A9E94; --ok: #3ecf8e;
+    --mono: "SF Mono", "JetBrains Mono", "Cascadia Code", ui-monospace, Menlo, Consolas, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(circle at 15% 8%, rgba(15,110,102,0.12), transparent 42%),
+      radial-gradient(circle at 88% 0%, rgba(62,207,142,0.04), transparent 38%);
+    background-attachment: fixed; min-height: 100vh;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── header ── */
+  header {
+    border-bottom: 1px solid var(--line); background: rgba(15,17,21,0.88);
+    backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 10;
+  }
+  .bar { display: flex; align-items: center; justify-content: space-between; height: 62px; }
+  .brand {
+    font-family: var(--mono); font-size: 0.92rem; color: var(--ink);
+    text-decoration: none; display: flex; align-items: center; gap: 10px;
+  }
+  .brand .glyph {
+    width: 22px; height: 22px; border-radius: 6px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.8rem; color: #fff;
+  }
+  nav.tabs a {
+    font-family: var(--mono); font-size: 0.82rem; color: var(--ink-dim);
+    text-decoration: none; padding: 7px 14px; border-radius: 7px;
+    border: 1px solid transparent; transition: all 0.15s ease;
+  }
+  nav.tabs a:hover { color: var(--ink); background: var(--panel-2); border-color: var(--line); }
+
+  /* ── back link ── */
+  .back {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: var(--mono); font-size: 0.8rem; color: var(--ink-dim);
+    text-decoration: none; margin: 30px 0 0; transition: color 0.15s ease;
+  }
+  .back:hover { color: var(--accent-soft); }
+
+  /* ── app hero ── */
+  .app-hero { padding: 26px 0 34px; border-bottom: 1px solid var(--line); }
+  .app-id { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; }
+  .app-icon {
+    width: 72px; height: 72px; flex-shrink: 0; border-radius: 17px;
+    overflow: hidden; box-shadow: 0 6px 22px rgba(15,110,102,0.22);
+  }
+  .app-icon img { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .app-hero h1 {
+    font-size: clamp(1.9rem, 4.2vw, 2.5rem); font-weight: 700;
+    letter-spacing: -0.02em; line-height: 1.1;
+  }
+  .app-hero .tagline { color: var(--ink-dim); font-size: 1.1rem; margin-top: 5px; }
+
+  /* ── badges ── */
+  .badges { display: flex; flex-wrap: wrap; gap: 9px; margin: 18px 0 24px; font-family: var(--mono); font-size: 0.74rem; }
+  .pill { border: 1px solid var(--line); background: var(--panel); color: var(--ink-dim); padding: 5px 12px; border-radius: 20px; }
+  .pill.good { color: var(--ok); border-color: rgba(62,207,142,0.3); background: rgba(62,207,142,0.08); }
+  .pill.teal { color: var(--accent-soft); border-color: rgba(15,110,102,0.3); background: rgba(15,110,102,0.08); }
+
+  /* ── CTA ── */
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .cta {
+    display: inline-flex; align-items: center; gap: 9px;
+    background: var(--accent); color: #fff;
+    text-decoration: none; font-weight: 700; font-size: 0.95rem;
+    padding: 13px 24px; border-radius: 10px;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .cta:hover { background: var(--accent-soft); transform: translateY(-1px); }
+
+  /* ── hero screenshot ── */
+  .shot {
+    margin: 36px 0 0; border: 1px solid var(--line); border-radius: 14px;
+    overflow: hidden; background: var(--panel);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  }
+  .shot img { display: block; width: 100%; }
+
+  /* ── content ── */
+  .content { padding: 14px 0 70px; }
+  .content h2 {
+    font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; margin: 44px 0 16px;
+  }
+  .content p { color: var(--ink-dim); margin-bottom: 16px; font-size: 1.02rem; }
+
+  /* ── modules grid ── */
+  .module-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .module {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 20px;
+    transition: border-color 0.15s ease;
+  }
+  .module:hover { border-color: rgba(15,110,102,0.35); }
+  .module .mi { font-size: 1.2rem; margin-bottom: 8px; }
+  .module h4 { font-size: 1rem; font-weight: 600; margin-bottom: 5px; }
+  .module p { font-size: 0.9rem; color: var(--ink-dim); margin: 0; line-height: 1.55; }
+
+  /* ── feature list ── */
+  .feat-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .feat-list li {
+    display: flex; gap: 12px; align-items: flex-start;
+    font-size: 0.97rem; color: var(--ink-dim);
+  }
+  .feat-list li::before { content: "▹"; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+
+  /* ── screenshot gallery ── */
+  .gallery { display: grid; grid-template-columns: 1fr; gap: 26px; margin-top: 8px; }
+  .gshot {
+    border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+    background: var(--panel); box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+  .gshot img { display: block; width: 100%; }
+  .gshot .cap {
+    font-family: var(--mono); font-size: 0.78rem; color: var(--ink-dim);
+    padding: 12px 16px; border-top: 1px solid var(--line); background: var(--panel-2);
+  }
+  .gshot .cap b { color: var(--ink); font-weight: 600; }
+
+  /* ── footer ── */
+  footer {
+    border-top: 1px solid var(--line); padding: 26px 0;
+    font-family: var(--mono); font-size: 0.78rem; color: var(--ink-faint);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  }
+  footer a { color: var(--ink-dim); text-decoration: none; }
+  footer a:hover { color: var(--accent-soft); }
+
+  @media (max-width: 640px) { .module-grid { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap bar">
+    <a href="../index.html" class="brand">
+      <span class="glyph">▦</span><span>Apps</span>
+    </a>
+    <nav class="tabs"><a href="../index.html">apps</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <a href="../index.html" class="back">← all apps</a>
+
+  <section class="app-hero">
+    <div class="app-id">
+      <div class="app-icon">
+        <img src="img/pdfworkbench_icon.png" alt="PDF Workbench icon">
+      </div>
+      <div>
+        <h1>PDF Workbench</h1>
+        <div class="tagline">Local PDF toolkit — edit, merge, split, password, and sign — all on your PC.</div>
+      </div>
+    </div>
+
+    <div class="badges">
+      <span class="pill good">On the Store</span>
+      <span class="pill teal">Works offline</span>
+      <span class="pill">No subscription</span>
+      <span class="pill">No cloud uploads</span>
+      <span class="pill">Windows 10 / 11</span>
+    </div>
+
+    <div class="cta-row">
+      <a href="https://apps.microsoft.com/detail/9mwrmhc6kf9q?hl=en-GB&gl=US" target="_blank" rel="noopener" class="cta">
+        Get it on the Microsoft Store →
+      </a>
+    </div>
+
+    <div class="shot">
+      <img src="img/EditPage.png"
+           alt="PDF Workbench edit view showing a PDF page with a draggable text box">
+    </div>
+  </section>
+
+  <section class="content">
+
+    <h2>What it does</h2>
+    <p>Most PDF tools are either browser-based (meaning your documents go to someone else's server) or locked behind expensive subscriptions. PDF Workbench is the opposite — it runs entirely on your Windows PC, keeps your files where they belong, and gives you five essential tools in one clean interface.</p>
+    <p>Edit pages, merge files, split and convert, add passwords, and place signatures — all offline. No cloud uploads, no monthly fees, no accounts. Just your files, on your machine.</p>
+
+    <h2>Five tools, one workbench</h2>
+    <div class="module-grid">
+      <div class="module">
+        <div class="mi">✏️</div>
+        <h4>Edit pages</h4>
+        <p>Open one or more PDFs. Each is edited and saved separately. Drag added text to position it. Double-click a text box to edit it — drag to move, drag the corner to resize.</p>
+      </div>
+      <div class="module">
+        <div class="mi">📎</div>
+        <h4>Merge</h4>
+        <p>Add files, set the order you want, then combine into one PDF. Perfect for consolidating reports, invoices, or scanned documents.</p>
+      </div>
+      <div class="module">
+        <div class="mi">✂️</div>
+        <h4>Split &amp; convert</h4>
+        <p>Split by page range, split every N pages, or extract specific pages. Convert PDF to images or build a PDF from images. Compress large files for email.</p>
+      </div>
+      <div class="module">
+        <div class="mi">🔒</div>
+        <h4>Password</h4>
+        <p>Open a PDF, then add or remove its password — all on this PC. No passwords sent anywhere. Everything stays local.</p>
+      </div>
+      <div class="module">
+        <div class="mi">✍️</div>
+        <h4>Sign</h4>
+        <p>Upload a signature image or draw one with your mouse, then place it on any page. Drag to position, drag the corner to resize — save a signed copy.</p>
+      </div>
+      <div class="module">
+        <div class="mi">⚡</div>
+        <h4>Fast &amp; native</h4>
+        <p>A lightweight WPF app that opens instantly. Everything runs locally — no waiting for cloud uploads or downloads.</p>
+      </div>
+    </div>
+
+    <h2>Why offline matters</h2>
+    <ul class="feat-list">
+      <li>Your documents never leave your PC — no cloud uploads, no third-party servers</li>
+      <li>Works without an internet connection — ideal for sensitive documents or on-the-go</li>
+      <li>No subscription, no monthly fees — pay once and own it</li>
+      <li>Faster than any web tool — opens instantly, processes locally</li>
+    </ul>
+
+    <h2>A look inside</h2>
+    <div class="gallery">
+      <div class="gshot">
+        <img src="img/EditPage.png"
+             alt="PDF Workbench edit view">
+        <div class="cap">
+          <b>Edit</b> — open multiple PDFs, each edited separately. Add text boxes, rotate, or delete pages.
+        </div>
+      </div>
+      <div class="gshot">
+        <img src="img/Merge.png"
+             alt="PDF Workbench merge view">
+        <div class="cap">
+          <b>Merge</b> — add files, reorder them, and combine into one PDF.
+        </div>
+      </div>
+      <div class="gshot">
+        <img src="img/Split and Convert.png"
+             alt="PDF Workbench split and convert view">
+        <div class="cap">
+          <b>Split &amp; Convert</b> — extract ranges, split every N pages, PDF↔images, and compress.
+        </div>
+      </div>
+      <div class="gshot">
+        <img src="img/Password.png"
+             alt="PDF Workbench password view">
+        <div class="cap">
+          <b>Password</b> — add or remove open-passwords. All processing stays on your PC.
+        </div>
+      </div>
+      <div class="gshot">
+        <img src="img/Sign.png"
+             alt="PDF Workbench sign view">
+        <div class="cap">
+          <b>Sign</b> — upload or draw a signature, then place it on any page. Drag to position, drag the corner to resize.
+        </div>
+      </div>
+    </div>
+
+    <h2>Good to know</h2>
+    <p>PDF Workbench is a native WPF app for Windows 10 and 11. All processing is done locally on your machine — no files are uploaded anywhere. It uses Docnet.Core (PDFium) for fast rendering and PdfSharpCore for PDF manipulation. Available on the Microsoft Store as a one-time purchase with no subscription.</p>
+  </section>
+</main>
+
+<footer class="wrap">
+  <span>Made for Windows · Available on the Microsoft Store</span>
+  <a href="../index.html">← back to all apps</a>
+</footer>
+</body>
+</html>
