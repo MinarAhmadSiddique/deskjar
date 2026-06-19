@@ -71,4 +71,17 @@ window.APPS = [
       "One-time purchase, no subscription, no cloud account"
     ]
   },
+{
+    slug: "pdfworkbench",
+    name: "PDF Workbench",
+    tagline: "Local PDF toolkit — edit, merge, split, password, and sign — all on your PC.",
+    icon: "apps/img/pdfworkbench_icon.png",
+    initials: "PW",
+    badge: "On the Store",
+    features: [
+      "Edit, merge, split, convert, password-protect, and sign PDFs — all offline",
+      "Everything stays on your PC — no cloud uploads, no accounts, no subscriptions",
+      "Native Windows app that opens instantly and keeps your documents private"
+    ]
+}
 ];
