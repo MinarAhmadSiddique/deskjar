@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DineOps — Restaurant staff management for Windows</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --panel-2: #1d212b; --line: #2a2f3a;
+    --ink: #e8eaf0; --ink-dim: #9aa0ad; --ink-faint: #646b78;
+    --accent: #f59e0b; --accent-soft: #fbbf24; --ok: #3ecf8e;
+    --mono: "SF Mono", "JetBrains Mono", "Cascadia Code", ui-monospace, Menlo, Consolas, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(circle at 15% 8%, rgba(245,158,11,0.08), transparent 42%),
+      radial-gradient(circle at 88% 0%, rgba(62,207,142,0.04), transparent 38%);
+    background-attachment: fixed; min-height: 100vh;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── header ── */
+  header {
+    border-bottom: 1px solid var(--line); background: rgba(15,17,21,0.88);
+    backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 10;
+  }
+  .bar { display: flex; align-items: center; justify-content: space-between; height: 62px; }
+  .brand {
+    font-family: var(--mono); font-size: 0.92rem; color: var(--ink);
+    text-decoration: none; display: flex; align-items: center; gap: 10px;
+  }
+  .brand .glyph {
+    width: 22px; height: 22px; border-radius: 6px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.8rem; color: #1a0e00;
+  }
+  nav.tabs a {
+    font-family: var(--mono); font-size: 0.82rem; color: var(--ink-dim);
+    text-decoration: none; padding: 7px 14px; border-radius: 7px;
+    border: 1px solid transparent; transition: all 0.15s ease;
+  }
+  nav.tabs a:hover { color: var(--ink); background: var(--panel-2); border-color: var(--line); }
+
+  /* ── back link ── */
+  .back {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: var(--mono); font-size: 0.8rem; color: var(--ink-dim);
+    text-decoration: none; margin: 30px 0 0; transition: color 0.15s ease;
+  }
+  .back:hover { color: var(--accent-soft); }
+
+  /* ── app hero ── */
+  .app-hero { padding: 26px 0 34px; border-bottom: 1px solid var(--line); }
+  .app-id { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; }
+  .app-icon {
+    width: 72px; height: 72px; flex-shrink: 0; border-radius: 17px;
+    overflow: hidden; box-shadow: 0 6px 22px rgba(245,158,11,0.2);
+  }
+  .app-icon img { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .app-hero h1 {
+    font-size: clamp(1.9rem, 4.2vw, 2.5rem); font-weight: 700;
+    letter-spacing: -0.02em; line-height: 1.1;
+  }
+  .app-hero .tagline { color: var(--ink-dim); font-size: 1.1rem; margin-top: 5px; }
+
+  /* ── badges ── */
+  .badges { display: flex; flex-wrap: wrap; gap: 9px; margin: 18px 0 24px; font-family: var(--mono); font-size: 0.74rem; }
+  .pill { border: 1px solid var(--line); background: var(--panel); color: var(--ink-dim); padding: 5px 12px; border-radius: 20px; }
+  .pill.good { color: var(--ok); border-color: rgba(62,207,142,0.3); background: rgba(62,207,142,0.08); }
+  .pill.amber { color: var(--accent); border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.08); }
+
+  /* ── CTA ── */
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .cta {
+    display: inline-flex; align-items: center; gap: 9px;
+    background: var(--accent); color: #1a0e00;
+    text-decoration: none; font-weight: 700; font-size: 0.95rem;
+    padding: 13px 24px; border-radius: 10px;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .cta:hover { background: var(--accent-soft); transform: translateY(-1px); }
+
+  /* ── hero screenshot ── */
+  .shot {
+    margin: 36px 0 0; border: 1px solid var(--line); border-radius: 14px;
+    overflow: hidden; background: var(--panel);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  }
+  .shot img { display: block; width: 100%; }
+
+  /* ── content ── */
+  .content { padding: 14px 0 70px; }
+  .content h2 {
+    font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; margin: 44px 0 16px;
+  }
+  .content p { color: var(--ink-dim); margin-bottom: 16px; font-size: 1.02rem; }
+
+  /* ── modules grid ── */
+  .module-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .module {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 20px;
+    transition: border-color 0.15s ease;
+  }
+  .module:hover { border-color: rgba(245,158,11,0.35); }
+  .module .mi { font-size: 1.2rem; margin-bottom: 8px; }
+  .module h4 { font-size: 1rem; font-weight: 600; margin-bottom: 5px; }
+  .module p { font-size: 0.9rem; color: var(--ink-dim); margin: 0; line-height: 1.55; }
+
+  /* ── feature list (why offline) ── */
+  .feat-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .feat-list li {
+    display: flex; gap: 12px; align-items: flex-start;
+    font-size: 0.97rem; color: var(--ink-dim);
+  }
+  .feat-list li::before { content: "▹"; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+
+  /* ── screenshot gallery ── */
+  .gallery { display: grid; grid-template-columns: 1fr; gap: 26px; margin-top: 8px; }
+  .gshot {
+    border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+    background: var(--panel); box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+  .gshot img { display: block; width: 100%; }
+  .gshot .cap {
+    font-family: var(--mono); font-size: 0.78rem; color: var(--ink-dim);
+    padding: 12px 16px; border-top: 1px solid var(--line); background: var(--panel-2);
+  }
+  .gshot .cap b { color: var(--ink); font-weight: 600; }
+
+  /* ── footer ── */
+  footer {
+    border-top: 1px solid var(--line); padding: 26px 0;
+    font-family: var(--mono); font-size: 0.78rem; color: var(--ink-faint);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  }
+  footer a { color: var(--ink-dim); text-decoration: none; }
+  footer a:hover { color: var(--accent-soft); }
+
+  @media (max-width: 640px) { .module-grid { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap bar">
+    <a href="../index.html" class="brand">
+      <span class="glyph">▦</span><span>Apps</span>
+    </a>
+    <nav class="tabs"><a href="../index.html">apps</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <a href="../index.html" class="back">← all apps</a>
+
+  <section class="app-hero">
+    <div class="app-id">
+      <div class="app-icon">
+        <img src="img/dineops_icon.png" alt="DineOps icon">
+      </div>
+      <div>
+        <h1>DineOps</h1>
+        <div class="tagline">Complete restaurant staff management — runs entirely on your PC.</div>
+      </div>
+    </div>
+
+    <div class="badges">
+      <span class="pill good">On the Store</span>
+      <span class="pill amber">Works offline</span>
+      <span class="pill">No subscription</span>
+      <span class="pill">No cloud account</span>
+      <span class="pill">Windows 10 / 11</span>
+    </div>
+
+    <div class="cta-row">
+      <a href="https://apps.microsoft.com/detail/9nmgf8j7sqqd?hl=en-GB&gl=US"
+         target="_blank" rel="noopener" class="cta">
+        Get it on the Microsoft Store →
+      </a>
+    </div>
+
+    <div class="shot">
+      <img src="img/dineops_dashboard.png"
+           alt="DineOps dashboard showing today's labor metrics, weekly trends, and automated recommendations">
+    </div>
+  </section>
+
+  <section class="content">
+
+    <h2>What it does</h2>
+    <p>Most restaurant management software is a SaaS subscription that charges you every month, requires an internet connection, and stores your staff data on someone else's servers. DineOps is the opposite — it runs entirely offline on your Windows PC, costs nothing to keep running, and gives small restaurants the same operational visibility that large chains pay hundreds a month for.</p>
+    <p>Schedule your team, track actual hours against the plan, record tips, and let the Dashboard turn all of it into plain-English reports and color-coded recommendations automatically. No spreadsheets, no manual calculations, no data leaving your machine.</p>
+
+    <h2>Five modules, one restaurant</h2>
+    <div class="module-grid">
+      <div class="module">
+        <div class="mi">📊</div>
+        <h4>Dashboard</h4>
+        <p>Today's labor metrics plus 7, 14, and 30-day trends. Auto-generated plain-English reports and color-coded recommendations — no manual reporting needed.</p>
+      </div>
+      <div class="module">
+        <div class="mi">👤</div>
+        <h4>Employees</h4>
+        <p>Complete staff roster with roles, pay rates, hire dates, and status. Partial updates, search by name or ID, and a terminated status that blocks scheduling.</p>
+      </div>
+      <div class="module">
+        <div class="mi">📅</div>
+        <h4>Scheduling</h4>
+        <p>Weekly shift builder with start time, end time, break, and station per day. Total hours and projected labor cost calculated automatically. Overnight shifts handled.</p>
+      </div>
+      <div class="module">
+        <div class="mi">🕐</div>
+        <h4>Time Clock</h4>
+        <p>Clock in and out by name or ID. See who's expected today vs who's actually in. Real-time variance shows how actual hours and cost compare to the schedule.</p>
+      </div>
+      <div class="module">
+        <div class="mi">💰</div>
+        <h4>Tips & Pay</h4>
+        <p>Record tips per employee per shift. View each person's complete work history — hours and tips side by side. Current, last, and previous week hours at a glance.</p>
+      </div>
+      <div class="module">
+        <div class="mi">🔒</div>
+        <h4>Fully offline</h4>
+        <p>All data stored locally in a SQLite database on your PC. Nothing is transmitted. No account needed. Back up by copying one file.</p>
+      </div>
+    </div>
+
+    <h2>Why offline matters</h2>
+    <ul class="feat-list">
+      <li>Your staff's pay rates, hours, and personal details stay on your machine — not on a vendor's server</li>
+      <li>Works during internet outages — the busiest nights are the worst time for cloud software to fail</li>
+      <li>No monthly fee means you own it permanently from day one</li>
+      <li>Faster than any web app — opens instantly, responds immediately</li>
+    </ul>
+
+    <h2>A look inside</h2>
+    <div class="gallery">
+      <div class="gshot">
+        <img src="img/dineops_dashboard.png"
+             alt="DineOps dashboard — today's metrics and 30-day labor overview">
+        <div class="cap">
+          <b>Dashboard</b> — 8 real-time KPI cards for today plus rolling 7, 14, and 30-day summaries.
+        </div>
+      </div>
+      <div class="gshot">
+        <img src="img/dineops_dashboard_report.png"
+             alt="DineOps automated report and recommendations panel">
+        <div class="cap">
+          <b>Report & Recommendations</b> — plain-English narrative and color-coded action items generated automatically from your data.
+        </div>
+      </div>
+      <div class="gshot">
+        <img src="img/dineops_employees.png"
+             alt="DineOps employees module showing staff roster">
+        <div class="cap">
+          <b>Employees</b> — full roster with roles, pay rates, hire dates, and status. Search by name or ID.
+        </div>
+      </div>
+      <div class="gshot">
+        <img src="img/dineops_scheduling.png"
+             alt="DineOps scheduling grid showing weekly shifts">
+        <div class="cap">
+          <b>Scheduling</b> — 7-day grid with start, end, break, and station per day. Hours and labor cost auto-calculated.
+        </div>
+      </div>
+      <div class="gshot">
+        <img src="img/dineops_timeclock.png"
+             alt="DineOps time clock showing expected and clocked-in boards">
+        <div class="cap">
+          <b>Time Clock</b> — expected today vs clocked in, with real-time variance against the schedule.
+        </div>
+      </div>
+      <div class="gshot">
+        <img src="img/dineops_tipspay.png"
+             alt="DineOps tips and pay module">
+        <div class="cap">
+          <b>Tips & Pay</b> — record tips per shift, view weekly earnings history, and track every employee's complete work record.
+        </div>
+      </div>
+    </div>
+
+    <h2>Good to know</h2>
+    <p>DineOps is a native WPF app for Windows 10 and 11. All data is stored locally in <span style="font-family:var(--mono);font-size:0.88em;color:var(--accent)">%LOCALAPPDATA%\DineOps\DineOps.db</span> — a single file you can back up by copying it anywhere. There are no accounts, no network requests, and no telemetry. Built for restaurants with 3 to 15 employees. Available on the Microsoft Store.</p>
+  </section>
+</main>
+
+<footer class="wrap">
+  <span>Made for Windows · Available on the Microsoft Store</span>
+  <a href="../index.html">← back to all apps</a>
+</footer>
+</body>
+</html>

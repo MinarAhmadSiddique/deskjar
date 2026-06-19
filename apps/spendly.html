@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spendly — a private, offline money tracker for Windows</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --panel-2: #1d212b; --line: #2a2f3a;
+    --ink: #e8eaf0; --ink-dim: #9aa0ad; --ink-faint: #646b78;
+    --accent: #2dd4a7; --accent-soft: #5fe0bd; --ok: #3ecf8e;
+    --mono: "SF Mono", "JetBrains Mono", "Cascadia Code", ui-monospace, Menlo, Consolas, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(circle at 15% 8%, rgba(45,212,167,0.10), transparent 42%),
+      radial-gradient(circle at 88% 0%, rgba(62,207,142,0.05), transparent 38%);
+    background-attachment: fixed; min-height: 100vh;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+ 
+  header {
+    border-bottom: 1px solid var(--line); background: rgba(15,17,21,0.85);
+    backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 10;
+  }
+  .bar { display: flex; align-items: center; justify-content: space-between; height: 62px; }
+  .brand { font-family: var(--mono); font-size: 0.92rem; color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 10px; }
+  .brand .glyph { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg, var(--accent), var(--accent-soft)); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; color: #08110d; }
+  nav.tabs a { font-family: var(--mono); font-size: 0.82rem; color: var(--ink-dim); text-decoration: none; padding: 7px 14px; border-radius: 7px; border: 1px solid transparent; transition: all 0.15s ease; }
+  nav.tabs a:hover { color: var(--ink); background: var(--panel-2); border-color: var(--line); }
+ 
+  .back { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 0.8rem; color: var(--ink-dim); text-decoration: none; margin: 30px 0 0; transition: color 0.15s ease; }
+  .back:hover { color: var(--accent-soft); }
+ 
+  .app-hero { padding: 26px 0 34px; border-bottom: 1px solid var(--line); }
+  .app-id { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; }
+  .app-icon { width: 72px; height: 72px; flex-shrink: 0; border-radius: 17px; overflow: hidden; box-shadow: 0 6px 22px rgba(45,212,167,0.18); }
+  .app-icon img { width: 100%; height: 100%; display: block; }
+  .app-hero h1 { font-size: clamp(1.9rem, 4.2vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+  .app-hero .tagline { color: var(--ink-dim); font-size: 1.1rem; margin-top: 5px; }
+ 
+  .badges { display: flex; flex-wrap: wrap; gap: 9px; margin: 18px 0 24px; font-family: var(--mono); font-size: 0.74rem; }
+  .pill { border: 1px solid var(--line); background: var(--panel); color: var(--ink-dim); padding: 5px 12px; border-radius: 20px; }
+  .pill.good { color: var(--ok); border-color: rgba(62,207,142,0.3); background: rgba(62,207,142,0.08); }
+ 
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .cta { display: inline-flex; align-items: center; gap: 9px; background: var(--accent); color: #08110d; text-decoration: none; font-weight: 700; font-size: 0.95rem; padding: 13px 24px; border-radius: 10px; transition: background 0.15s ease, transform 0.15s ease; }
+  .cta:hover { background: var(--accent-soft); transform: translateY(-1px); }
+ 
+  /* hero screenshot */
+  .shot { margin: 36px 0 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--panel); box-shadow: 0 10px 40px rgba(0,0,0,0.35); }
+  .shot img { display: block; width: 100%; }
+ 
+  .content { padding: 14px 0 70px; }
+  .content h2 { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; margin: 44px 0 16px; }
+  .content p { color: var(--ink-dim); margin-bottom: 16px; font-size: 1.02rem; }
+ 
+  .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .feature { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+  .feature .fi { font-size: 1.2rem; margin-bottom: 8px; }
+  .feature h4 { font-size: 1rem; font-weight: 600; margin-bottom: 5px; }
+  .feature p { font-size: 0.9rem; color: var(--ink-dim); margin: 0; }
+ 
+  /* screenshot gallery */
+  .gallery { display: grid; grid-template-columns: 1fr; gap: 26px; margin-top: 8px; }
+  .gshot { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--panel); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+  .gshot img { display: block; width: 100%; }
+  .gshot .cap { font-family: var(--mono); font-size: 0.78rem; color: var(--ink-dim); padding: 12px 16px; border-top: 1px solid var(--line); background: var(--panel-2); }
+  .gshot .cap b { color: var(--ink); font-weight: 600; }
+ 
+  footer { border-top: 1px solid var(--line); padding: 26px 0; font-family: var(--mono); font-size: 0.78rem; color: var(--ink-faint); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  footer a { color: var(--ink-dim); text-decoration: none; }
+  footer a:hover { color: var(--accent-soft); }
+ 
+  @media (max-width: 640px) { .feature-grid { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap bar">
+    <a href="../index.html" class="brand"><span class="glyph">▦</span><span>Apps</span></a>
+    <nav class="tabs"><a href="../index.html">apps</a></nav>
+  </div>
+</header>
+ 
+<main class="wrap">
+  <a href="../index.html" class="back">← all apps</a>
+ 
+  <section class="app-hero">
+    <div class="app-id">
+      <div class="app-icon"><img src="img/spendly_icon_1024.png" alt="Spendly icon"></div>
+      <div>
+        <h1>Spendly</h1>
+        <div class="tagline">A private money tracker that keeps your finances on your own PC.</div>
+      </div>
+    </div>
+ 
+    <div class="badges">
+      <span class="pill good">Your data stays on this PC</span>
+      <span class="pill">No bank login</span>
+      <span class="pill">No subscription</span>
+      <span class="pill">Works offline</span>
+      <span class="pill">Windows 10 / 11</span>
+    </div>
+ 
+    <div class="cta-row">
+      <a href="https://apps.microsoft.com/detail/9nzqsdg9stbx" target="_blank" rel="noopener" class="cta">Get it on the Microsoft Store →</a>
+    </div>
+ 
+    <div class="shot">
+      <img src="img/Dashboard.png" alt="Spendly dashboard showing income, spending, trends and insights">
+    </div>
+  </section>
+ 
+  <section class="content">
+    <h2>What it does</h2>
+    <p>Every budgeting app seems to want your bank login, a monthly subscription, and your financial data sitting on someone else's servers. Spendly is the opposite. It runs entirely on your computer — no accounts, no cloud, no bank connection — so your money stays your business.</p>
+    <p>Import months of history from a bank CSV in seconds, then Spendly turns your numbers into a clear dashboard, monthly trends, category breakdowns, and plain-language insights about where your money actually goes. Buy it once and own it.</p>
+ 
+    <h2>Features</h2>
+    <div class="feature-grid">
+      <div class="feature"><div class="fi">🔒</div><h4>Completely offline</h4><p>Your data is stored locally and never leaves your device. There's no server to send it to.</p></div>
+      <div class="feature"><div class="fi">📥</div><h4>Import bank statements</h4><p>Bring in months of transactions from a CSV in seconds, with column mapping and duplicate detection.</p></div>
+      <div class="feature"><div class="fi">📊</div><h4>Insightful dashboard</h4><p>Income, spending, net, month-over-month trends, and automatic insights at a glance.</p></div>
+      <div class="feature"><div class="fi">🍩</div><h4>Category breakdowns</h4><p>See exactly where your money goes with a clear donut chart and ranked list.</p></div>
+      <div class="feature"><div class="fi">📅</div><h4>Monthly &amp; yearly reports</h4><p>Income vs. spending by month, savings rate, and a CSV export of everything.</p></div>
+      <div class="feature"><div class="fi">∞</div><h4>Pay once</h4><p>No subscription, ever. One purchase and it's yours to keep.</p></div>
+    </div>
+ 
+    <h2>A look inside</h2>
+    <div class="gallery">
+      <div class="gshot">
+        <img src="img/Dashboard.png" alt="Spendly dashboard">
+        <div class="cap"><b>Dashboard</b> — income, spending, net, a 6-month trend, and automatic insights.</div>
+      </div>
+      <div class="gshot">
+        <img src="img/Reports.png" alt="Spendly reports">
+        <div class="cap"><b>Reports</b> — income vs. spending by month, savings rate, and CSV export.</div>
+      </div>
+      <div class="gshot">
+        <img src="img/category.png" alt="Spendly category breakdown">
+        <div class="cap"><b>Categories</b> — where your money actually goes, broken down clearly.</div>
+      </div>
+      <div class="gshot">
+        <img src="img/Transactions.png" alt="Spendly transactions list">
+        <div class="cap"><b>Transactions</b> — add, edit, filter, and categorize everything in one place.</div>
+      </div>
+      <div class="gshot">
+        <img src="img/Import.png" alt="Spendly bank statement import">
+        <div class="cap"><b>Import &amp; Tips</b> — bring in a bank CSV, map the columns, and import in seconds.</div>
+      </div>
+    </div>
+ 
+    <h2>Good to know</h2>
+    <p>Spendly is a native Windows app for Windows 10 and 11. Everything you track is stored in a local file on your machine — there are no accounts, no cloud sync, and no network connection used for your data. It imports transactions from a bank CSV (most banks offer a CSV or "export transactions" option in your account activity). It's a one-time purchase with no subscription.</p>
+  </section>
+</main>
+ 
+<footer class="wrap">
+  <span>Made for Windows · Available on the Microsoft Store</span>
+  <a href="../index.html">← back to all apps</a>
+</footer>
+</body>
+</html>
+ 

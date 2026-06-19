@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Currency Pulse — live exchange rates, alerts &amp; crypto for Windows</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --panel-2: #1d212b; --line: #2a2f3a;
+    --ink: #e8eaf0; --ink-dim: #9aa0ad; --ink-faint: #646b78;
+    --accent: #6c63ff; --accent-soft: #a48bff; --ok: #3ecf8e;
+    --mono: "SF Mono", "JetBrains Mono", "Cascadia Code", ui-monospace, Menlo, Consolas, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(circle at 15% 8%, rgba(108,99,255,0.10), transparent 42%),
+      radial-gradient(circle at 88% 0%, rgba(62,207,142,0.04), transparent 38%);
+    background-attachment: fixed; min-height: 100vh;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── header ── */
+  header {
+    border-bottom: 1px solid var(--line); background: rgba(15,17,21,0.88);
+    backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 10;
+  }
+  .bar { display: flex; align-items: center; justify-content: space-between; height: 62px; }
+  .brand {
+    font-family: var(--mono); font-size: 0.92rem; color: var(--ink);
+    text-decoration: none; display: flex; align-items: center; gap: 10px;
+  }
+  .brand .glyph {
+    width: 22px; height: 22px; border-radius: 6px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.8rem; color: #fff;
+  }
+  nav.tabs a {
+    font-family: var(--mono); font-size: 0.82rem; color: var(--ink-dim);
+    text-decoration: none; padding: 7px 14px; border-radius: 7px;
+    border: 1px solid transparent; transition: all 0.15s ease;
+  }
+  nav.tabs a:hover { color: var(--ink); background: var(--panel-2); border-color: var(--line); }
+
+  /* ── back link ── */
+  .back {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: var(--mono); font-size: 0.8rem; color: var(--ink-dim);
+    text-decoration: none; margin: 30px 0 0; transition: color 0.15s ease;
+  }
+  .back:hover { color: var(--accent-soft); }
+
+  /* ── app hero ── */
+  .app-hero { padding: 26px 0 34px; border-bottom: 1px solid var(--line); }
+  .app-id { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; }
+  .app-icon {
+    width: 72px; height: 72px; flex-shrink: 0; border-radius: 17px;
+    overflow: hidden; box-shadow: 0 6px 22px rgba(108,99,255,0.22);
+  }
+  .app-icon img { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .app-hero h1 {
+    font-size: clamp(1.9rem, 4.2vw, 2.5rem); font-weight: 700;
+    letter-spacing: -0.02em; line-height: 1.1;
+  }
+  .app-hero .tagline { color: var(--ink-dim); font-size: 1.1rem; margin-top: 5px; }
+
+  /* ── badges ── */
+  .badges { display: flex; flex-wrap: wrap; gap: 9px; margin: 18px 0 24px; font-family: var(--mono); font-size: 0.74rem; }
+  .pill { border: 1px solid var(--line); background: var(--panel); color: var(--ink-dim); padding: 5px 12px; border-radius: 20px; }
+  .pill.good { color: var(--ok); border-color: rgba(62,207,142,0.3); background: rgba(62,207,142,0.08); }
+  .pill.indigo { color: var(--accent-soft); border-color: rgba(108,99,255,0.3); background: rgba(108,99,255,0.08); }
+
+  /* ── CTA ── */
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .cta {
+    display: inline-flex; align-items: center; gap: 9px;
+    background: var(--accent); color: #fff;
+    text-decoration: none; font-weight: 700; font-size: 0.95rem;
+    padding: 13px 24px; border-radius: 10px;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .cta:hover { background: var(--accent-soft); transform: translateY(-1px); }
+
+  /* ── hero screenshot ── */
+  .shot {
+    margin: 36px 0 0; border: 1px solid var(--line); border-radius: 14px;
+    overflow: hidden; background: var(--panel);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  }
+  .shot img { display: block; width: 100%; }
+
+  /* ── content ── */
+  .content { padding: 14px 0 70px; }
+  .content h2 {
+    font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; margin: 44px 0 16px;
+  }
+  .content p { color: var(--ink-dim); margin-bottom: 16px; font-size: 1.02rem; }
+
+  /* ── modules grid ── */
+  .module-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .module {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 20px;
+    transition: border-color 0.15s ease;
+  }
+  .module:hover { border-color: rgba(108,99,255,0.35); }
+  .module .mi { font-size: 1.2rem; margin-bottom: 8px; }
+  .module h4 { font-size: 1rem; font-weight: 600; margin-bottom: 5px; }
+  .module p { font-size: 0.9rem; color: var(--ink-dim); margin: 0; line-height: 1.55; }
+
+  /* ── feature list ── */
+  .feat-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .feat-list li {
+    display: flex; gap: 12px; align-items: flex-start;
+    font-size: 0.97rem; color: var(--ink-dim);
+  }
+  .feat-list li::before { content: "▹"; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+
+  /* ── screenshot gallery ── */
+  .gallery { display: grid; grid-template-columns: 1fr; gap: 26px; margin-top: 8px; }
+  .gshot {
+    border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+    background: var(--panel); box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+  .gshot img { display: block; width: 100%; }
+  .gshot .cap {
+    font-family: var(--mono); font-size: 0.78rem; color: var(--ink-dim);
+    padding: 12px 16px; border-top: 1px solid var(--line); background: var(--panel-2);
+  }
+  .gshot .cap b { color: var(--ink); font-weight: 600; }
+
+  /* ── footer ── */
+  footer {
+    border-top: 1px solid var(--line); padding: 26px 0;
+    font-family: var(--mono); font-size: 0.78rem; color: var(--ink-faint);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  }
+  footer a { color: var(--ink-dim); text-decoration: none; }
+  footer a:hover { color: var(--accent-soft); }
+
+  @media (max-width: 640px) { .module-grid { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap bar">
+    <a href="../index.html" class="brand">
+      <span class="glyph">▦</span><span>Apps</span>
+    </a>
+    <nav class="tabs"><a href="../index.html">apps</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <a href="../index.html" class="back">← all apps</a>
+
+  <section class="app-hero">
+    <div class="app-id">
+      <div class="app-icon">
+        <img src="img/currencypulse_icon.jpg" alt="Currency Pulse icon">
+      </div>
+      <div>
+        <h1>Currency Pulse</h1>
+        <div class="tagline">Live exchange rates, price alerts, a travel planner and crypto — in one clean dashboard.</div>
+      </div>
+    </div>
+
+    <div class="badges">
+      <span class="pill good">On the Store</span>
+      <span class="pill indigo">Live rates</span>
+      <span class="pill">No account</span>
+      <span class="pill">No subscription</span>
+      <span class="pill">Windows 10 / 11</span>
+    </div>
+
+    <div class="cta-row">
+      <a href="https://apps.microsoft.com/detail/9pfntf5bf955?hl=en-GB&gl=US"
+         target="_blank" rel="noopener" class="cta">
+        Get it on the Microsoft Store →
+      </a>
+    </div>
+
+    <div class="shot">
+      <img src="img/cp_dashboard.png"
+           alt="Currency Pulse dashboard showing live rates for major currencies with trend charts">
+    </div>
+  </section>
+
+  <section class="content">
+
+    <h2>What it does</h2>
+    <p>Most currency apps are bare converters — type two currencies, get a number, close the app. Currency Pulse does more. It keeps a live watchlist of the currencies you actually care about, tracks them with mini trend charts, and notifies you the moment a rate crosses a target you set. It even includes a travel budget planner and live crypto prices, all in one place.</p>
+    <p>Everything runs as a fast native Windows app. No account, no subscription, no setup — open it and your rates are already there.</p>
+
+    <h2>Five tools, one dashboard</h2>
+    <div class="module-grid">
+      <div class="module">
+        <div class="mi">📊</div>
+        <h4>Live Rates</h4>
+        <p>A personal watchlist of 30+ currencies, refreshed automatically. Each card shows the current rate plus a 10-day trend sparkline at a glance.</p>
+      </div>
+      <div class="module">
+        <div class="mi">🔄</div>
+        <h4>Converter</h4>
+        <p>Fast cross-rate conversion between any two currencies, with a built-in quick-reference table for common amounts from 1 to 10,000.</p>
+      </div>
+      <div class="module">
+        <div class="mi">🔔</div>
+        <h4>Price Alerts</h4>
+        <p>Set a target rate and get a Windows notification the moment it's crossed — above or below. Never miss the right moment to exchange.</p>
+      </div>
+      <div class="module">
+        <div class="mi">✈️</div>
+        <h4>Travel Budget</h4>
+        <p>Enter a budget and trip length, then see what it's worth across 18 popular destinations — with a per-day spending breakdown for each.</p>
+      </div>
+      <div class="module">
+        <div class="mi">₿</div>
+        <h4>Crypto Rates</h4>
+        <p>Track Bitcoin, Ethereum, Solana, and more alongside your fiat currencies, each with its live price and 24-hour change.</p>
+      </div>
+      <div class="module">
+        <div class="mi">⚡</div>
+        <h4>Fast &amp; native</h4>
+        <p>A lightweight native app that opens instantly. Your watchlist and alerts are saved locally — no account or sign-in required.</p>
+      </div>
+    </div>
+
+    <h2>Why people keep it open</h2>
+    <ul class="feat-list">
+      <li>Your most-used currencies are always on screen — no retyping the same pair every time</li>
+      <li>Price alerts watch the market for you, so you don't have to keep checking</li>
+      <li>The travel planner answers "how far does my budget go?" for a whole trip in one glance</li>
+      <li>Fiat and crypto live side by side — no switching between apps</li>
+    </ul>
+
+    <h2>A look inside</h2>
+    <div class="gallery">
+      <div class="gshot">
+        <img src="img/cp_dashboard.png"
+             alt="Currency Pulse live rates dashboard">
+        <div class="cap">
+          <b>Live Rates</b> — your watchlist of currencies with auto-refresh and 10-day trend charts on every card.
+        </div>
+      </div>
+      <div class="gshot">
+        <img src="img/cp_converter.png"
+             alt="Currency Pulse converter with quick reference table">
+        <div class="cap">
+          <b>Converter</b> — convert any two currencies, with a quick-reference table for common amounts.
+        </div>
+      </div>
+      <div class="gshot">
+        <img src="img/cp_alerts.png"
+             alt="Currency Pulse price alerts screen">
+        <div class="cap">
+          <b>Price Alerts</b> — set a target and get notified when a rate goes above or below it.
+        </div>
+      </div>
+      <div class="gshot">
+        <img src="img/cp_travel.png"
+             alt="Currency Pulse travel budget breakdown">
+        <div class="cap">
+          <b>Travel Budget</b> — your budget across 18 destinations, with a per-day breakdown for each.
+        </div>
+      </div>
+      <div class="gshot">
+        <img src="img/cp_crypto.png"
+             alt="Currency Pulse crypto rates screen">
+        <div class="cap">
+          <b>Crypto Rates</b> — Bitcoin, Ethereum, Solana and more, each with live price and 24-hour change.
+        </div>
+      </div>
+    </div>
+
+    <h2>Good to know</h2>
+    <p>Currency Pulse is a native WPF app for Windows 10 and 11. Your watchlist and alerts are stored locally on your device — no account is required. Live rates come from public exchange-rate and crypto data sources, so an internet connection is needed to refresh prices. Available on the Microsoft Store.</p>
+  </section>
+</main>
+
+<footer class="wrap">
+  <span>Made for Windows · Available on the Microsoft Store</span>
+  <a href="../index.html">← back to all apps</a>
+</footer>
+</body>
+</html>
